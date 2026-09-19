@@ -13,6 +13,7 @@ import re
 from datetime import datetime
 from typing import Dict, Any, Type
 from pydantic import BaseModel, Field, field_validator, ValidationError
+from src.fault_injector import inject_fault
 
 
 # ==========================================
@@ -111,6 +112,7 @@ class UnitConversionOutput(BaseModel):
 # ==========================================
 # 4. Mock Tool Implementations
 # ==========================================
+@inject_fault
 def mock_flight_search(origin: str, destination: str, date: str) -> Dict[str, Any]:
     """Mock implementation for FlightSearch tool."""
     flight_hash = abs(hash(f"{origin}-{destination}-{date}")) % 9000 + 1000
@@ -124,6 +126,7 @@ def mock_flight_search(origin: str, destination: str, date: str) -> Dict[str, An
     }
 
 
+@inject_fault
 def mock_calendar_booking(event_title: str, start_time: str, duration_minutes: int) -> Dict[str, Any]:
     """Mock implementation for CalendarBooking tool."""
     booking_hash = abs(hash(f"{event_title}-{start_time}")) % 90000 + 10000
@@ -136,6 +139,7 @@ def mock_calendar_booking(event_title: str, start_time: str, duration_minutes: i
     }
 
 
+@inject_fault
 def mock_weather_lookup(location: str, unit: str) -> Dict[str, Any]:
     """Mock implementation for WeatherLookup tool."""
     temp = 22.5 if unit.upper() == "C" else 72.5
@@ -148,6 +152,7 @@ def mock_weather_lookup(location: str, unit: str) -> Dict[str, Any]:
     }
 
 
+@inject_fault
 def mock_unit_conversion(value: float, from_unit: str, to_unit: str) -> Dict[str, Any]:
     """Mock implementation for UnitConversion tool."""
     # Simple deterministic mock conversion factor logic
@@ -159,6 +164,7 @@ def mock_unit_conversion(value: float, from_unit: str, to_unit: str) -> Dict[str
         "from_unit": from_unit.lower(),
         "to_unit": to_unit.lower()
     }
+
 
 
 # ==========================================
