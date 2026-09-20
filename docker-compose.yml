@@ -1,0 +1,12 @@
+services:
+  evaluator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tool_recover_evaluator
+    volumes:
+      - ./output:/app/output
+    environment:
+      - LLM_API_KEY=${LLM_API_KEY:-replace_me}
+      - LLM_MODEL_ID=${LLM_MODEL_ID:-gpt-4o-mini}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
