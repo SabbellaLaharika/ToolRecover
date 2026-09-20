@@ -13,7 +13,6 @@ import time
 import functools
 from typing import Callable, Any, Dict
 
-
 class FaultContext:
     """Global/thread execution context for fault injection."""
     current_fault: str = "NONE"
