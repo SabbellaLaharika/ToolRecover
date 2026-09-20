@@ -1,0 +1,50 @@
+{"id": 1, "request": "Book a flight from MIA to JFK on 2024-10-10", "expected_tool": "FlightSearch", "injected_fault": "NONE"}
+{"id": 2, "request": "Book a flight from JFK to LHR tomorrow", "expected_tool": "FlightSearch", "injected_fault": "NONE"}
+{"id": 3, "request": "Book a flight to Paris tomorrow", "expected_tool": "FlightSearch", "injected_fault": "NONE"}
+{"id": 4, "request": "Search flights from SFO to LAX on 2025-05-15", "expected_tool": "FlightSearch", "injected_fault": "TIMEOUT"}
+{"id": 5, "request": "Fly from ORD to MIA tomorrow", "expected_tool": "FlightSearch", "injected_fault": "MALFORMED"}
+{"id": 6, "request": "Book flight from BOS to SEA on 2024-12-01", "expected_tool": "FlightSearch", "injected_fault": "NONE"}
+{"id": 7, "request": "Search flight from DFW to DEN tomorrow", "expected_tool": "FlightSearch", "injected_fault": "NONE"}
+{"id": 8, "request": "Book flight to London tomorrow", "expected_tool": "FlightSearch", "injected_fault": "TIMEOUT"}
+{"id": 9, "request": "Fly from ATL to JFK on 2025-01-20", "expected_tool": "FlightSearch", "injected_fault": "MALFORMED"}
+{"id": 10, "request": "Search flights from EWR to SFO tomorrow", "expected_tool": "FlightSearch", "injected_fault": "NONE"}
+{"id": 11, "request": "Book flight from IAH to ORD on 2024-11-11", "expected_tool": "FlightSearch", "injected_fault": "NONE"}
+{"id": 12, "request": "Book a flight to Tokyo tomorrow", "expected_tool": "FlightSearch", "injected_fault": "NONE"}
+{"id": 13, "request": "Search flight from LAS to PHX on 2025-02-14", "expected_tool": "FlightSearch", "injected_fault": "TIMEOUT"}
+{"id": 14, "request": "Get weather in Tokyo in C", "expected_tool": "WeatherLookup", "injected_fault": "NONE"}
+{"id": 15, "request": "Get current weather in Paris", "expected_tool": "WeatherLookup", "injected_fault": "NONE"}
+{"id": 16, "request": "Check weather in London in F", "expected_tool": "WeatherLookup", "injected_fault": "TIMEOUT"}
+{"id": 17, "request": "What is the weather in New York", "expected_tool": "WeatherLookup", "injected_fault": "MALFORMED"}
+{"id": 18, "request": "Weather forecast for Sydney in C", "expected_tool": "WeatherLookup", "injected_fault": "NONE"}
+{"id": 19, "request": "Lookup weather in Berlin in F", "expected_tool": "WeatherLookup", "injected_fault": "NONE"}
+{"id": 20, "request": "Get weather in Toronto in C", "expected_tool": "WeatherLookup", "injected_fault": "TIMEOUT"}
+{"id": 21, "request": "Check weather in Madrid", "expected_tool": "WeatherLookup", "injected_fault": "MALFORMED"}
+{"id": 22, "request": "Weather lookup for Rome in C", "expected_tool": "WeatherLookup", "injected_fault": "NONE"}
+{"id": 23, "request": "Get weather in Seoul in F", "expected_tool": "WeatherLookup", "injected_fault": "NONE"}
+{"id": 24, "request": "Check weather in Mumbai in C", "expected_tool": "WeatherLookup", "injected_fault": "NONE"}
+{"id": 25, "request": "What is the temperature in Cairo", "expected_tool": "WeatherLookup", "injected_fault": "TIMEOUT"}
+{"id": 26, "request": "Book meeting with Team tomorrow at 10:00 for 60 minutes", "expected_tool": "CalendarBooking", "injected_fault": "NONE"}
+{"id": 27, "request": "Schedule Sync Meeting for 30 minutes", "expected_tool": "CalendarBooking", "injected_fault": "NONE"}
+{"id": 28, "request": "Book calendar event Project Review tomorrow at 14:00 for 45 minutes", "expected_tool": "CalendarBooking", "injected_fault": "NONE"}
+{"id": 29, "request": "Schedule 1-on-1 meeting tomorrow at 09:00 for 30 minutes", "expected_tool": "CalendarBooking", "injected_fault": "TIMEOUT"}
+{"id": 30, "request": "Book meeting Sprint Planning tomorrow at 11:00 for 60 minutes", "expected_tool": "CalendarBooking", "injected_fault": "MALFORMED"}
+{"id": 31, "request": "Schedule Design Critique tomorrow for 60 minutes", "expected_tool": "CalendarBooking", "injected_fault": "NONE"}
+{"id": 32, "request": "Book meeting Client Demo tomorrow at 15:00 for 30 minutes", "expected_tool": "CalendarBooking", "injected_fault": "NONE"}
+{"id": 33, "request": "Schedule Retrospective meeting tomorrow at 16:00 for 60 minutes", "expected_tool": "CalendarBooking", "injected_fault": "TIMEOUT"}
+{"id": 34, "request": "Book calendar event All Hands tomorrow at 13:00 for 90 minutes", "expected_tool": "CalendarBooking", "injected_fault": "MALFORMED"}
+{"id": 35, "request": "Schedule Tech Talk meeting tomorrow at 11:00 for 45 minutes", "expected_tool": "CalendarBooking", "injected_fault": "NONE"}
+{"id": 36, "request": "Book meeting Architecture Review tomorrow for 60 minutes", "expected_tool": "CalendarBooking", "injected_fault": "NONE"}
+{"id": 37, "request": "Schedule Code Review meeting tomorrow at 10:00 for 30 minutes", "expected_tool": "CalendarBooking", "injected_fault": "TIMEOUT"}
+{"id": 38, "request": "Convert 10 miles to km", "expected_tool": "UnitConversion", "injected_fault": "NONE"}
+{"id": 39, "request": "Convert 5 kg to lbs", "expected_tool": "UnitConversion", "injected_fault": "NONE"}
+{"id": 40, "request": "Convert 100 meters to feet", "expected_tool": "UnitConversion", "injected_fault": "NONE"}
+{"id": 41, "request": "Unit conversion 25 miles to km", "expected_tool": "UnitConversion", "injected_fault": "TIMEOUT"}
+{"id": 42, "request": "Convert 50 lbs to kg", "expected_tool": "UnitConversion", "injected_fault": "MALFORMED"}
+{"id": 43, "request": "Convert 12 inches to cm", "expected_tool": "UnitConversion", "injected_fault": "NONE"}
+{"id": 44, "request": "Unit conversion 3.5 miles to km", "expected_tool": "UnitConversion", "injected_fault": "NONE"}
+{"id": 45, "request": "Convert 200 km to miles", "expected_tool": "UnitConversion", "injected_fault": "TIMEOUT"}
+{"id": 46, "request": "Convert 15 gallons to liters", "expected_tool": "UnitConversion", "injected_fault": "MALFORMED"}
+{"id": 47, "request": "Unit conversion 70 kg to lbs", "expected_tool": "UnitConversion", "injected_fault": "NONE"}
+{"id": 48, "request": "Convert 500 meters to miles", "expected_tool": "UnitConversion", "injected_fault": "NONE"}
+{"id": 49, "request": "Convert 2.5 miles to km", "expected_tool": "UnitConversion", "injected_fault": "NONE"}
+{"id": 50, "request": "Convert 100 lbs to kg", "expected_tool": "UnitConversion", "injected_fault": "TIMEOUT"}
