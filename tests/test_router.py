@@ -2,8 +2,11 @@
 Contract and Unit Tests for AI Function-Calling Router (Phase 6 / req-1 through req-8)
 """
 
+import os
 import pytest
 from pydantic import ValidationError
+
+os.environ["USE_OFFLINE_LLM"] = "true"
 
 from src.tools import (
     FlightSearchInput, CalendarBookingInput, WeatherLookupInput, UnitConversionInput,
@@ -11,6 +14,7 @@ from src.tools import (
 )
 from src.fault_injector import FaultContext, inject_fault
 from src.router import process_request
+
 
 
 # ==========================================

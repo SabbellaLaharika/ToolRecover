@@ -20,9 +20,13 @@ import time
 from datetime import datetime
 from typing import Dict, Any, Tuple, Optional
 from pydantic import ValidationError
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from src.tools import TOOLS
 from src.fault_injector import FaultContext
+
 
 # Try to import openai if available
 try:
@@ -37,31 +41,74 @@ except ImportError:
 # ==========================================
 class LLMEngine:
     """
-    Interface for LLM invocations. Uses OpenAI API if configured,
-    otherwise uses a deterministic heuristic fallback engine for offline testing.
+    Interface for LLM invocations. Supports OpenAI, Groq, or custom OpenAI-compatible endpoints.
+    Falls back to a deterministic heuristic engine when no key is set or on network failure.
     """
     
     @staticmethod
     def call_llm(prompt: str, system_prompt: str = "You are a helpful AI function-calling router assistant.") -> str:
-        api_key = os.getenv("LLM_API_KEY", "").strip()
-        model_id = os.getenv("LLM_MODEL_ID", "gpt-4o-mini").strip()
+        if os.getenv("USE_OFFLINE_LLM", "").lower() in ("true", "1"):
+            return LLMEngine._heuristic_response(prompt)
+
+        api_key = os.getenv("GROQ_API_KEY", "").strip() or os.getenv("LLM_API_KEY", "").strip()
+        base_url = os.getenv("LLM_BASE_URL", "").strip()
+        model_id = os.getenv("LLM_MODEL_ID", "").strip()
 
         if OPENAI_AVAILABLE and api_key and api_key != "replace_me":
+
             try:
-                client = openai.OpenAI(api_key=api_key)
-                response = client.chat.completions.create(
-                    model=model_id,
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.0
-                )
-                return response.choices[0].message.content or ""
-            except Exception as e:
+                # Auto-configure Groq endpoint if gsk_ key or GROQ_API_KEY is detected
+                if (api_key.startswith("gsk_") or os.getenv("GROQ_API_KEY")) and not base_url:
+                    base_url = "https://api.groq.com/openai/v1"
+                    if not model_id or model_id in ["gpt-4o-mini", "replace_me"]:
+                        model_id = "openai/gpt-oss-20b"
+
+                # Auto-configure NVIDIA NIM endpoint if nvapi- key is detected
+                elif api_key.startswith("nvapi-") and not base_url:
+                    base_url = "https://integrate.api.nvidia.com/v1"
+                    if not model_id or model_id in ["gpt-4o-mini", "replace_me"]:
+                        model_id = "nvidia/nemotron-3.5-lightning-30b-a3b"
+
+
+                if not model_id:
+                    model_id = "gpt-4o-mini"
+
+
+
+
+                client_kwargs: Dict[str, Any] = {"api_key": api_key}
+                if base_url:
+                    client_kwargs["base_url"] = base_url
+
+                client = openai.OpenAI(**client_kwargs)
+
+                # Retry up to 2 times on rate limit (429) or transient API errors
+                for attempt in range(2):
+                    try:
+                        response = client.chat.completions.create(
+                            model=model_id,
+                            messages=[
+                                {"role": "system", "content": system_prompt},
+                                {"role": "user", "content": prompt}
+                            ],
+                            temperature=0.0,
+                            max_tokens=256
+                        )
+                        res_content = response.choices[0].message.content or ""
+                        if res_content:
+                            return res_content
+                    except Exception as err:
+                        err_str = str(err).lower()
+                        if ("429" in err_str or "rate limit" in err_str) and attempt == 0:
+                            time.sleep(1.5)  # Backoff for rate limit
+                            continue
+                        break
+            except Exception:
                 pass  # Fall back to heuristic engine if API call fails
 
+
         return LLMEngine._heuristic_response(prompt)
+
 
     @staticmethod
     def _heuristic_response(prompt: str) -> str:
@@ -171,6 +218,17 @@ class LLMEngine:
         return json.dumps({"tool": "WeatherLookup", "arguments": {"location": "London", "unit": "C"}})
 
 
+import re
+
+def clean_llm_response(text: str) -> str:
+    """Strips markdown code blocks and conversational fluff from LLM output."""
+    text = text.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"\s*```$", "", text)
+    return text.strip()
+
+
 # ==========================================
 # Router Intent Classification & Argument Extraction
 # ==========================================
@@ -181,11 +239,16 @@ def extract_intent_and_args(request: str) -> Tuple[str, Dict[str, Any]]:
     prompt = f"""Given the user request: '{request}'
 Select one tool from [FlightSearch, CalendarBooking, WeatherLookup, UnitConversion] and extract arguments in JSON format:
 {{"tool": "ToolName", "arguments": {{...}}}}
-Return only valid JSON."""
+Return ONLY valid raw JSON."""
     
-    response_str = LLMEngine.call_llm(prompt)
+    response_str = LLMEngine.call_llm(
+        prompt, 
+        system_prompt="You are a strict function-calling parser. Output ONLY valid JSON without conversational text or markdown blocks."
+    )
+    cleaned_str = clean_llm_response(response_str)
+    
     try:
-        data = json.loads(response_str)
+        data = json.loads(cleaned_str)
         return data.get("tool", "WeatherLookup"), data.get("arguments", {})
     except Exception:
         # Direct fallback regex / keyword parser
@@ -199,6 +262,7 @@ Return only valid JSON."""
         if "convert" in req_lower:
             return "UnitConversion", {"value": 10.0, "from_unit": "miles", "to_unit": "km"}
         return "WeatherLookup", {"location": "Unknown", "unit": "C"}
+
 
 
 # ==========================================
@@ -251,7 +315,12 @@ def process_request(request: str, use_recovery: bool = True) -> Dict[str, Any]:
                 f"Based on the user's original request '{request}', what should this value be? "
                 f"Return only the value."
             )
-            extracted_val = LLMEngine.call_llm(prompt).strip().strip('"').strip("'")
+            extracted_val = clean_llm_response(
+                LLMEngine.call_llm(
+                    prompt, 
+                    system_prompt="Return ONLY the exact extracted parameter value. Do NOT include conversational text, quotes, or explanations."
+                )
+            ).strip('"').strip("'")
             
             # Merge argument and retry validation (Bounded retry = 1)
             raw_args[missing_field] = extracted_val
@@ -272,7 +341,12 @@ def process_request(request: str, use_recovery: bool = True) -> Dict[str, Any]:
                 f"The field '{bad_field}' requires format matching tool schema, but you provided '{bad_val}'. "
                 f"Translate '{bad_val}' into the correct format. Based on request '{request}'. Return only the formatted value."
             )
-            corrected_val = LLMEngine.call_llm(prompt).strip().strip('"').strip("'")
+            corrected_val = clean_llm_response(
+                LLMEngine.call_llm(
+                    prompt,
+                    system_prompt="Return ONLY the formatted parameter value (e.g. YYYY-MM-DD or single string). Do NOT include conversational text or explanations."
+                )
+            ).strip('"').strip("'")
             
             # Merge corrected argument and retry validation (Bounded retry = 1)
             raw_args[bad_field] = corrected_val
@@ -332,7 +406,12 @@ def process_request(request: str, use_recovery: bool = True) -> Dict[str, Any]:
             f"The tool returned this malformed payload: {json.dumps(raw_output)}. "
             f"Extract and repair the data to match this JSON schema: {json.dumps(output_model.model_json_schema())}."
         )
-        repaired_str = LLMEngine.call_llm(prompt)
+        repaired_raw = LLMEngine.call_llm(
+            prompt,
+            system_prompt="You are a JSON schema repair bot. Output ONLY valid repaired JSON matching the target schema without conversational text or code fences."
+        )
+        repaired_str = clean_llm_response(repaired_raw)
+
         
         try:
             repaired_json = json.loads(repaired_str)

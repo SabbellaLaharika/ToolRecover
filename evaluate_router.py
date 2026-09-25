@@ -27,7 +27,10 @@ def evaluate_dataset(dataset: List[Dict[str, Any]], use_recovery: bool) -> Dict[
     silent_wrong_count = 0
     total_attempts = 0
 
-    for item in dataset:
+    mode_label = "RECOVERY" if use_recovery else "BASELINE"
+    print(f"--- Starting Pass: {mode_label} Mode ({total_requests} requests) ---", flush=True)
+
+    for idx, item in enumerate(dataset):
         request_text = item["request"]
         injected_fault = item.get("injected_fault", "NONE")
         
@@ -42,6 +45,8 @@ def evaluate_dataset(dataset: List[Dict[str, Any]], use_recovery: bool) -> Dict[
         total_attempts += attempts
 
         status = res.get("status")
+        print(f"[{mode_label}] Item {idx+1}/{total_requests} (id={item['id']}): status={status}, attempts={attempts}", flush=True)
+
         if status == "success":
             tool_name = res.get("tool")
             result_payload = res.get("result", {})
